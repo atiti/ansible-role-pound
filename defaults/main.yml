@@ -1,18 +1,62 @@
 ---
 
-pound_svc_name: pound
 
 # What level to log at
 pound_log_level: 1
 
+## check backend every X secs:
+pound_alive: 30
+
 # What ip address should pound listen on?
-pound_listen_http_address: 127.0.0.1
+pound_listen_http_address: '127.0.0.1'
 
 # What port should pound listen on?
-pound_listen_http_port: 80
+pound_listen_http_port: '80'
+pound_internal_web: '8080'
+pound_internal_address: '127.0.0.1'
 
 # What ip will pound be proxying traffic to?
 # - add more by adding additional items in the form ['ip', 'port']
-pound_backend_servers: 
+pound_backend_servers:
   - [ '127.0.0.1', '8080' ]
 #  - [ '192.168.100.100', '8080']
+
+pound_error_page: "/var/www/default/index.html"
+
+pound_ssl_ciphers: "ECDH+AESGCM:DH+AESGCM:ECDH+AES256:DH+AES256:ECDH+AES128:DH+AES:ECDH+3DES:DH+3DES:RSA+AESGCM:RSA+AES:RSA+3DES:!aNULL:!MD5"
+
+
+pound_frontends:
+       - name: 'ListenHTTPS'
+         address: '127.0.0.1'
+         port: '443'
+         cert: ''
+         xHTTP: '1'
+         rewriteloc: 0
+         headremove: 'X-Forwarded-Proto'
+         headadd: 'X-Forwarded-Proto: https'
+       - name: 'ListenHTTP'
+         address: '127.0.0.1'
+         port: '80'
+         headremove: 'X-Forwarded-Proto'
+         headadd: 'X-Forwarded-Proto: http'
+         service:
+           - name: redirect
+             redirect: "https://www-dev.indigo-herbs.co.uk/"
+
+
+pound_backends:
+        - name: default
+          hostname: '.*example.com\..*'
+          hosts:
+            - "{{pound_internal_address}}"
+
+    # Session
+    #     Type Cookie
+    # END
+    # Emergency
+    #     Address localhost
+    #     Port {{ pound_internal_web }}
+    # End
+
+

@@ -59,13 +59,16 @@ End
 
 {% for service in pound_backends %}
 Service "{{service.name}}"
-{% if service.hostname != None %}
+{% if service.hostname is defined and service.hostname != '' %}
     HeadRequire "Host:{{ service.hostname }}"
+{% endif %}
+{% if url in service.urls %}
+    URL "{{ url }}"
 {% endif %}
 {% for host in service.hosts %}
     BackEnd
-        Address {{host}}
-        Port {{ pound_internal_web }}
+        Address {{ host.ipaddress }}
+        Port {{ host.port }}
     End
 {% endfor %}
 End

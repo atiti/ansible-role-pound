@@ -42,7 +42,7 @@ pound_frontends:
          headadd: 'X-Forwarded-Proto: http'
          service:
            - name: redirect
-             redirect: "https://www-dev.indigo-herbs.co.uk/"
+             redirect: "https://localhost/"
 
 
 pound_backends:

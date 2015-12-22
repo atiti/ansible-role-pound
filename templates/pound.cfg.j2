@@ -42,8 +42,12 @@ Control "{{ pound_control_socket }}"
              Port {{ service.port }}
          End
 {% endif %}
+{% if service.headrequire is defined %}
+        HeadRequire "{{ service.headrequire }}"
+{% endif %}
+{# note on later version use RedirectAppend #}
 {% if service.redirect is defined %}
-        redirect "{{ service.redirect }}"
+        Redirect "{{ service.redirect }}"
 {% endif %}
       End
 {% endfor %}
@@ -55,17 +59,15 @@ Control "{{ pound_control_socket }}"
 End
 {% endfor %}
 
-# BACKENDS (pound backend)
-
-{% for service in pound_backends %}
-Service "{{service.name}}"
-{% if service.hostname is defined and service.hostname != '' %}
-    HeadRequire "Host:{{ service.hostname }}"
+{% for backend in pound_backends %}
+Service "{{backend.name}}"
+{% if backend.hostname is defined and backend.hostname != '' %}
+    HeadRequire "Host:{{ backend.hostname }}"
 {% endif %}
-{% if url in service.urls %}
-    URL "{{ url }}"
+{% if backend.url is defined and backend.url != '' %}
+    URL "{{ backend.url }}"
 {% endif %}
-{% for host in service.hosts %}
+{% for host in backend.hosts %}
     BackEnd
         Address {{ host.ipaddress }}
         Port {{ host.port }}
@@ -73,3 +75,4 @@ Service "{{service.name}}"
 {% endfor %}
 End
 {% endfor %}
+

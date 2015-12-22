@@ -23,7 +23,10 @@
    - restart pound
 
 - name: Configure pound to start in /etc/default/pound
-  lineinfile: dest=/etc/default/pound regexp=^startup= line=startup=1
+  lineinfile:
+    dest: "/etc/default/pound"
+    regexp: "^startup="
+    line: "startup=1"
   notify:
    - restart pound
   when: ansible_os_family == 'Debian'

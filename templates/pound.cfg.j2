@@ -3,20 +3,55 @@
 User	"{{ pound_user }}"
 Group	"{{ pound_group }}"
 
+#RootJail  "/var/pound"
+
 LogLevel {{ pound_log_level }}
+
+## check backend every X secs:
+Alive    {{ pound_alive }}
 
 Control "{{ pound_control_socket }}"
 
-ListenHTTP
-  Address {{ pound_listen_http_address }}
-  Port	{{ pound_listen_http_port }}
-
-  Service
-    BackEnd
-		  {% for server in pound_backend_servers %}
-      Address	{{ server[0] }}
-      Port	{{ server[1] }}
-			{% endfor %} 
+{% for listenblock in pound_frontends %}
+{{ listenblock.name }}
+    Address {{ listenblock.address }}
+    Port {{ listenblock.port }}
+    xHTTP {{ listenblock.xHTTP | default(0)}}
+{% if listenblock.cert is defined and listenblock.cert != None %}
+    Cert "{{ listenblock.cert }}"
+    Ciphers "{{ pound_ssl_ciphers }}"
+    SSLHonorCipherOrder 1
+{% endif %}
+{% if listenblock.rewriteloc is defined and listenblock.rewriteloc != None %}
+    RewriteLocation {{ listenblock.rewriteloc | default(0)}}
+{% endif %}
+{% if listenblock.headremove is defined  and listenblock.headremove != None %}
+    HeadRemove "{{ listenblock.headremove }}"
+{% endif %}
+{% if listenblock.headadd  is defined and listenblock.headadd != None %}
+    AddHeader "{{ listenblock.headadd }}"
+{% endif %}
+{% if listenblock.service is defined %}
+{% for service in listenblock.service %}
+    Service
+{% if service.backend is defined %}
+       BackEnd
+           Address {{ service.backend }}
+           Port {{ service.port }}
+       End
+{% endif %}
+{% if service.redirect is defined %}
+       redirect "{{ service.redirect }}"
+{% endif %}
     End
-  End
+{% endfor %}
+{% endif %}
+{% if pound_error_page is defined %}
+    Err414 "{{pound_error_page}}"
+    Err500 "{{pound_error_page}}"
+    Err501 "{{pound_error_page}}"
+    Err503 "{{pound_error_page}}"
+{% endif %}
 End
+{% endfor %}
+
